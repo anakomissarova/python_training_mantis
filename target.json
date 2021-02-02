@@ -3,12 +3,12 @@
     "baseUrl": "http://192.168.64.2/mantisbt/login_page.php"
   },
   "web_admin": {
-    "username": "administrator",
-    "password": "root"
+    "username": "admin",
+    "password": "admin"
   },
   "db": {
     "host": "192.168.64.2",
-    "dbname": "addressbook",
+    "dbname": "bugtracker",
     "user": "nastya",
     "password": "123456"
   }

@@ -4,7 +4,7 @@ import os.path
 import importlib
 #import jsonpickle
 from fixture.application import Application
-#from fixture.db import DbFixture
+from fixture.db import DbFixture
 #from fixture.orm import ORMFixture
 
 fixture = None
@@ -24,22 +24,24 @@ def load_config(file):
 def app(request):
     global fixture
     browser = request.config.getoption("--browser")
-    web_config = load_config(request.config.getoption("--target"))["web_address"]
+    web_address = load_config(request.config.getoption("--target"))["web_address"]
+    web_admin = load_config(request.config.getoption("--target"))["web_admin"]
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser, base_url=web_config['baseUrl'])
+        fixture = Application(browser=browser, base_url=web_address['baseUrl'])
+    fixture.session.ensure_login(username=web_admin['username'], password=web_admin['password'])
     return fixture
 
 
-# @pytest.fixture(scope="session")
-# def db(request):
-#     db_config = load_config(request.config.getoption("--target"))["db"]
-#     db_fixture = DbFixture(host=db_config["host"], dbname=db_config["dbname"],
-#                            user=db_config["user"], password=db_config["password"])
-#
-#     def fin():
-#         db_fixture.destroy()
-#     request.addfinalizer(fin)
-#     return db_fixture
+@pytest.fixture(scope="session")
+def db(request):
+    db_config = load_config(request.config.getoption("--target"))["db"]
+    db_fixture = DbFixture(host=db_config["host"], dbname=db_config["dbname"],
+                           user=db_config["user"], password=db_config["password"])
+
+    def fin():
+        db_fixture.destroy()
+    request.addfinalizer(fin)
+    return db_fixture
 #
 #
 # @pytest.fixture(scope="session")
