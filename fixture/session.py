@@ -16,12 +16,12 @@ class SessionHelper:
     def logout(self):
         wd = self.app.wd
         wd.find_element(By.CSS_SELECTOR, "span.user-info").click()
-        wd.find_element(By.CSS_SELECTOR, "a[href={}]".format(self.app.base_url))
+        wd.find_element(By.CSS_SELECTOR, "a[href*='logout_page.php']").click()
         wd.find_element(By.NAME, "username")
 
     def is_logged_in(self):
         wd = self.app.wd
-        return len(wd.find_elements(By.PARTIAL_LINK_TEXT, "account_page.php")) > 0
+        return len(wd.find_elements(By.CSS_SELECTOR, "span.user-info")) > 0
 
     def is_logged_in_as(self, username):
         return self.get_logged_user() == username
