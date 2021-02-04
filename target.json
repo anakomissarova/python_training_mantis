@@ -1,6 +1,6 @@
 {
   "web_address": {
-    "baseUrl": "http://192.168.64.2/mantisbt/login_page.php"
+    "baseUrl": "http://192.168.64.2/mantisbt/"
   },
   "web_admin": {
     "username": "admin",
@@ -11,5 +11,16 @@
     "dbname": "bugtracker",
     "user": "nastya",
     "password": "123456"
+  },
+  "ftp": {
+    "host": "192.168.64.2",
+    "user": "mantis",
+    "password": "mantis"
+  },
+  "james": {
+    "host": "192.168.64.2",
+    "port": 4555,
+    "user": "root",
+    "password": "root"
   }
 }

@@ -2,6 +2,7 @@ import pytest
 import json
 import os.path
 import importlib
+import ftputil
 #import jsonpickle
 from fixture.application import Application
 from fixture.db import DbFixture
@@ -20,21 +21,24 @@ def load_config(file):
     return target
 
 
+@pytest.fixture(scope="session")
+def config(request):
+    return load_config(request.config.getoption("--target"))
+
+
 @pytest.fixture
-def app(request):
+def app(request, config):
     global fixture
     browser = request.config.getoption("--browser")
-    web_address = load_config(request.config.getoption("--target"))["web_address"]
-    web_admin = load_config(request.config.getoption("--target"))["web_admin"]
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser, base_url=web_address['baseUrl'])
-    fixture.session.ensure_login(username=web_admin['username'], password=web_admin['password'])
+        fixture = Application(browser=browser, config=config)
+    fixture.session.ensure_login(username=config["web_admin"]['username'], password=config["web_admin"]['password'])
     return fixture
 
 
 @pytest.fixture(scope="session")
-def db(request):
-    db_config = load_config(request.config.getoption("--target"))["db"]
+def db(request, config):
+    db_config = config["db"]
     db_fixture = DbFixture(host=db_config["host"], dbname=db_config["dbname"],
                            user=db_config["user"], password=db_config["password"])
 
@@ -42,14 +46,32 @@ def db(request):
         db_fixture.destroy()
     request.addfinalizer(fin)
     return db_fixture
-#
-#
-# @pytest.fixture(scope="session")
-# def orm(request):
-#     db_config = load_config(request.config.getoption("--target"))["db"]
-#     orm_fixture = ORMFixture(host=db_config["host"], dbname=db_config["dbname"],
-#                              user=db_config["user"], password=db_config["password"])
-#     return orm_fixture
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_ftp(request, config):
+    setup_mantis_config(config["ftp"]["host"], config["ftp"]["user"], config["ftp"]["password"])
+    def fin():
+        restore_mantis_config(config["ftp"]["host"], config["ftp"]["user"], config["ftp"]["password"])
+    request.addfinalizer(fin)
+
+def setup_mantis_config(host, user, password):
+    with ftputil.FTPHost(host,user, password) as remote:
+        remote.chdir('mantisbt/config')
+        if remote.path.isfile('config_inc.php.bak'):
+            remote.remove('config_inc.php.bak')
+        if remote.path.isfile('config_inc.php'):
+            remote.rename('config_inc.php', 'config_inc.php.bak')
+        remote.upload(os.path.join(os.path.dirname(__file__), 'resources/config_inc.php'), 'config_inc.php')
+
+
+def restore_mantis_config(host, user, password):
+    with ftputil.FTPHost(host,user, password) as remote:
+        remote.chdir('mantisbt/config')
+        if remote.path.isfile('config_inc.php.bak'):
+            if remote.path.isfile('config_inc.php'):
+                remote.remove('config_inc.php')
+            remote.rename('config_inc.php.bak', 'config_inc.php')
 
 
 @pytest.fixture(scope="session", autouse=True)
