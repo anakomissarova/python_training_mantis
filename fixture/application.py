@@ -4,6 +4,7 @@ from fixture.project import ProjectHelper
 from fixture.james import JamesHelper
 from fixture.signup import SignUpHelper
 from fixture.mail import MailHelper
+from fixture.soap import SoapHelper
 
 
 class Application:
@@ -17,6 +18,8 @@ class Application:
         else:
             raise ValueError("Unknown browser: %s" % browser)
         self.base_url = config["web_address"]["baseUrl"]
+        self.admin_username = config['web_admin']['username']
+        self.admin_password = config['web_admin']['password']
         self.config = config
         self.wd.implicitly_wait(2)
         self.vars = {}
@@ -25,6 +28,7 @@ class Application:
         self.james = JamesHelper(self)
         self.signup = SignUpHelper(self)
         self.mail = MailHelper(self)
+        self.soap = SoapHelper(self)
 
     def is_valid(self):
         try:
